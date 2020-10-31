@@ -13,6 +13,9 @@ using DbProject.Infrastructure.Models;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using DbProject.Infrastructure.Dtos;
+using BenchmarkDotNet.Attributes;
+using DbProject.Infrastructure.Dtos.EntityDtos;
+using DbProject.Data.Repository.Abstract;
 
 namespace DbProject.Services
 {
@@ -94,19 +97,6 @@ namespace DbProject.Services
                     .GroupBy(x => new { x.Product.CategoryId, x.Product.Category.Name }).Select(x => new CountDto { Id = x.Key.CategoryId, Name = x.Key.Name, Count = x.Sum(y => y.Quantity) })
                     .ToListAsync()
             };
-        }
-
-        // perfomanse testing
-        public async Task<List<Order>> GetOrdersWithRelations(int size = 10)
-        {
-            return await _unitOfWork.OrderRepository.TableNoTracking
-                .Include(x => x.Customer)
-                .Include(x => x.DeliveryDetail)
-                .Include(x => x.Invoices)
-                .Include(x => x.OrderStatus)
-                .Include(x => x.OrderItems)
-                .Take(size)
-                .ToListAsync();
         }
     }
 }

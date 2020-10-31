@@ -1,7 +1,12 @@
 ﻿using AutoMapper;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 using DbProject.Data;
 using DbProject.Data.DataSeed;
+using DbProject.Data.Domain;
+using DbProject.Data.Repository;
 using DbProject.Data.UnitOfWork;
+using DbProject.Extensions;
 using DbProject.Infrastructure.Mappings;
 using DbProject.Infrastructure.Options;
 using DbProject.Services;
@@ -13,10 +18,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace DbProject
 {
@@ -38,7 +46,7 @@ namespace DbProject
         }
     }
 
-    class Program
+    public class Program
     {
         public static IConfigurationRoot _configuration;
 
@@ -49,95 +57,107 @@ namespace DbProject
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var dbProjectService = serviceProvider.GetRequiredService<IDbProjectService>();
-            
+
+            var perfomanceTestByEF = serviceProvider.GetRequiredService<EntityFrameworkPerfomanceTest>();
+            var perfomanceTestByDappeer = serviceProvider.GetRequiredService<DapperPerfomanceTest>();
+            var perfomanceTestByNHibernate = serviceProvider.GetRequiredService<NHibernatePerfomanceTest>();
+
+            Stopwatch stopWatch = new Stopwatch();
+            double queryTime = default;
+            object result = null;
+            int size;
+            int customerId;
+            string option;
 
             while (true)
             {
                 Console.WriteLine(@"
-                    Options:
-                        a: Functionality
-                        b: ORM perfomanse testing
+                Options:
+                    a: Get customers with orders counts
+                    b: Get order with products count
+                    c: Get customer products
+                    d: Get customer category products
+                    e: Get categories total orders count
+                    f: Get total placed products
+
+                    ORM perfomance testing
+                    g: Get orders with all relations
                 ");
 
-                Stopwatch stopWatch = new Stopwatch();
-                double queryTime = default;
-                object result = null;
-                int size;
-
                 Console.Write("\nenter option: ");
-                string option = Console.ReadLine();
-                Console.WriteLine();
+                option = Console.ReadLine();
 
-                if (option == "a")
+                switch (option)
                 {
-                    int customerId;
-                    Console.WriteLine(@"
-                    Options:
-                        a: Get customers with orders counts
-                        b: Get order with products count
-                        c: Get customer products
-                        d: Get customer category products
-                        e: Get categories total orders count
-                        f: Get total placed products
-                    ");
+                    case "a":
+                        Console.Write("enter size: ");
+                        size = int.Parse(Console.ReadLine());
+                        stopWatch.Start();
+                        result = dbProjectService.GetCustomersWithOrdersCountsAsync(size: size).Result;
+                        queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
+                        break;
+                    case "b":
+                        Console.Write("enter size: ");
+                        size = int.Parse(Console.ReadLine());
+                        stopWatch.Start();
+                        result = dbProjectService.GetOrderWithProductsCountAsync(size: size).Result;
+                        queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
+                        break;
+                    case "c":
+                        Console.Write("enter customer id: ");
+                        customerId = int.Parse(Console.ReadLine());
+                        stopWatch.Start();
+                        result = dbProjectService.GetCustomerProductsAsync(customerId).Result;
+                        queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
+                        break;
+                    case "d":
+                        Console.Write("enter customer id: ");
+                        customerId = int.Parse(Console.ReadLine());
+                        stopWatch.Start();
+                        result = dbProjectService.GetCustomerCategoryProductsAsync(customerId).Result;
+                        queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
+                        break;
+                    case "e":
+                        stopWatch.Start();
+                        result = dbProjectService.GetCategoriesTotalOrdersCountAsync().Result;
+                        queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
+                        break;
+                    case "f":
+                        stopWatch.Start();
+                        result = dbProjectService.GetTotalPlacedProductsAsync().Result;
+                        queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
+                        break;
+                    case "test":
+                        //Console.Write("enter size: ");
+                        //size = int.Parse(Console.ReadLine());
+                        size = 1000;
+                        stopWatch.Start();
+                        var resultByEF = perfomanceTestByEF.GetOrdersWithRelationsAsync(size);
+                        var queryTimeByEF = Math.Round(stopWatch.Elapsed.TotalMilliseconds, 2);
+                        stopWatch.Reset();
 
-                    Console.Write("\nenter option: ");
-                    option = Console.ReadLine();
+                        stopWatch.Start();
+                        var resultByDappeer = perfomanceTestByDappeer.GetOrdersWithRelationsAsync(size);
+                        var queryTimeByDappeer = Math.Round(stopWatch.Elapsed.TotalMilliseconds, 2);
+                        stopWatch.Reset();
 
-                    switch (option)
-                    {
-                        case "a":
-                            Console.Write("enter size: ");
-                            size = int.Parse(Console.ReadLine());
-                            stopWatch.Start();
-                            result = dbProjectService.GetCustomersWithOrdersCountsAsync(size: size).Result;
-                            queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
-                            break;
-                        case "b":
-                            Console.Write("enter size: ");
-                            size = int.Parse(Console.ReadLine());
-                            stopWatch.Start();
-                            result = dbProjectService.GetOrderWithProductsCountAsync(size: size).Result;
-                            queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
-                            break;
-                        case "c":
-                            Console.Write("enter customer id: ");
-                            customerId = int.Parse(Console.ReadLine());
-                            stopWatch.Start();
-                            result = dbProjectService.GetCustomerProductsAsync(customerId).Result;
-                            queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
-                            break;
-                        case "d":
-                            Console.Write("enter customer id: ");
-                            customerId = int.Parse(Console.ReadLine());
-                            stopWatch.Start();
-                            result = dbProjectService.GetCustomerCategoryProductsAsync(customerId).Result;
-                            queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
-                            break;
-                        case "e":
-                            stopWatch.Start();
-                            result = dbProjectService.GetCategoriesTotalOrdersCountAsync().Result;
-                            queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
-                            break;
-                        case "f":
-                            stopWatch.Start();
-                            result = dbProjectService.GetTotalPlacedProductsAsync().Result;
-                            queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
-                            break;
-                    }
-                    ShowObjectResult(result);
-                }
-                else if (option == "b")
-                {
+                        stopWatch.Start();
+                        var resultByNHibernate = perfomanceTestByNHibernate.GetOrdersWithRelationsAsync(size);
+                        var queryTimeByNHibernate = Math.Round(stopWatch.Elapsed.TotalMilliseconds, 2);
+                        stopWatch.Reset();
 
-                    Console.Write("Getting orders with relations\nenter size: ");
-                    size = int.Parse(Console.ReadLine());
-                    stopWatch.Start();
-                    result = dbProjectService.GetOrdersWithRelations(size: size).Result;
-                    queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
+                        Console.WriteLine(string.Format("\nRequest time taken - Get Orders With Relations: \n EF: {0}ms \n Dapper: {1}ms \n NHibernate: {2}ms", queryTimeByEF, queryTimeByDappeer, queryTimeByNHibernate));
+                        break;
                 }
 
-                Console.WriteLine(string.Format("Request time taken: {0}ms", queryTime));
+                //var summary = BenchmarkRunner.Run(typeof(ORMPerfomanceTest).Assembly);
+                if (!new string[] { "g", "h", "i", "j" }.Contains(option))
+                {
+                    //ShowObjectResult(result);
+                }
+
+                //Console.WriteLine(string.Format("Request time taken: {0}ms", queryTime));
+                stopWatch.Reset();
             }
         }
 
@@ -183,7 +203,7 @@ namespace DbProject
             }
         }
 
-        private static void ConfigureServices(IServiceCollection services)
+        public static void ConfigureServices(IServiceCollection services)
         {
             _configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -196,11 +216,19 @@ namespace DbProject
                     .UseLoggerFactory(LoggerFactory.Create(builder => { builder.AddConsole(); }))
                     .UseSqlServer(connectionString, b => b.MigrationsAssembly("DbProject"))) ;
 
+            services.Configure<ConnectionStringsOptions>(_configuration.GetSection(ConnectionStringsOptions.ConnectionStrings));
             services.Configure<EncryptionOptions>(_configuration.GetSection(EncryptionOptions.Encryption));
+
             services.AddAutoMapper(typeof(MappingProfile).GetTypeInfo().Assembly);
-            services.AddTransient<AppDbContext, AppDbContext>();
-            services.AddTransient<UnitOfWork, UnitOfWork>();
-            services.AddTransient<IDbProjectService, DbProjectService>();
+            services.AddScoped<AppDbContext, AppDbContext>();
+            services.AddScoped<UnitOfWork, UnitOfWork>();
+            services.AddScoped<IDbProjectService, DbProjectService>();
+            services.AddScoped<DapperRepository>();
+            services.AddScoped<EntityFrameworkPerfomanceTest>();
+            services.AddScoped<DapperPerfomanceTest>();
+            services.AddScoped<NHibernatePerfomanceTest>();
+            services.AddNHibernate(connectionString);
+
 
             using (var serviceScope = services.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>().CreateScope())
             {

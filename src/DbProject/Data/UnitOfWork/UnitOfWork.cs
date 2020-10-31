@@ -1,6 +1,8 @@
 ﻿using DbProject.Data;
 using DbProject.Data.Domain;
 using DbProject.Data.Repository;
+using DbProject.Infrastructure.Options;
+using Microsoft.Extensions.Options;
 using System;
 
 namespace DbProject.Data.UnitOfWork

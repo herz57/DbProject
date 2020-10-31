@@ -1,5 +1,6 @@
 ﻿using DbProject.Data.Domain;
 using DbProject.Infrastructure.Dtos;
+using DbProject.Infrastructure.Dtos.EntityDtos;
 using DbProject.Infrastructure.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,8 +15,5 @@ namespace DbProject.Services.Abstract
         Task<List<CountDto>> GetTotalPlacedProductsAsync();
         Task<CustomerProductsDto> GetCustomerProductsAsync(int customerId);
         Task<CustomerCategoryProductsDto> GetCustomerCategoryProductsAsync(int customerId);
-
-        // perfomanse testing
-        Task<List<Order>> GetOrdersWithRelations(int size = 10);
     }
 }
