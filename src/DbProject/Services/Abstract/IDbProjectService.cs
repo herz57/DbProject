@@ -1,6 +1,5 @@
 ﻿using DbProject.Data.Domain;
 using DbProject.Infrastructure.Dtos;
-using DbProject.Infrastructure.Dtos.EntityDtos;
 using DbProject.Infrastructure.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;

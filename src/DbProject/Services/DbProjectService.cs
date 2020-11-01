@@ -14,8 +14,6 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using DbProject.Infrastructure.Dtos;
 using BenchmarkDotNet.Attributes;
-using DbProject.Infrastructure.Dtos.EntityDtos;
-using DbProject.Data.Repository.Abstract;
 
 namespace DbProject.Services
 {

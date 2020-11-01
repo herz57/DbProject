@@ -6,7 +6,6 @@ using DbProject.Data.DataSeed;
 using DbProject.Data.Domain;
 using DbProject.Data.Repository;
 using DbProject.Data.UnitOfWork;
-using DbProject.Extensions;
 using DbProject.Infrastructure.Mappings;
 using DbProject.Infrastructure.Options;
 using DbProject.Services;
@@ -58,10 +57,6 @@ namespace DbProject
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var dbProjectService = serviceProvider.GetRequiredService<IDbProjectService>();
 
-            var perfomanceTestByEF = serviceProvider.GetRequiredService<EntityFrameworkPerfomanceTest>();
-            var perfomanceTestByDappeer = serviceProvider.GetRequiredService<DapperPerfomanceTest>();
-            var perfomanceTestByNHibernate = serviceProvider.GetRequiredService<NHibernatePerfomanceTest>();
-
             Stopwatch stopWatch = new Stopwatch();
             double queryTime = default;
             object result = null;
@@ -79,9 +74,6 @@ namespace DbProject
                     d: Get customer category products
                     e: Get categories total orders count
                     f: Get total placed products
-
-                    ORM perfomance testing
-                    g: Get orders with all relations
                 ");
 
                 Console.Write("\nenter option: ");
@@ -127,36 +119,10 @@ namespace DbProject
                         result = dbProjectService.GetTotalPlacedProductsAsync().Result;
                         queryTime = Math.Round(stopWatch.Elapsed.TotalMilliseconds);
                         break;
-                    case "test":
-                        //Console.Write("enter size: ");
-                        //size = int.Parse(Console.ReadLine());
-                        size = 1000;
-                        stopWatch.Start();
-                        var resultByEF = perfomanceTestByEF.GetOrdersWithRelationsAsync(size);
-                        var queryTimeByEF = Math.Round(stopWatch.Elapsed.TotalMilliseconds, 2);
-                        stopWatch.Reset();
-
-                        stopWatch.Start();
-                        var resultByDappeer = perfomanceTestByDappeer.GetOrdersWithRelationsAsync(size);
-                        var queryTimeByDappeer = Math.Round(stopWatch.Elapsed.TotalMilliseconds, 2);
-                        stopWatch.Reset();
-
-                        stopWatch.Start();
-                        var resultByNHibernate = perfomanceTestByNHibernate.GetOrdersWithRelationsAsync(size);
-                        var queryTimeByNHibernate = Math.Round(stopWatch.Elapsed.TotalMilliseconds, 2);
-                        stopWatch.Reset();
-
-                        Console.WriteLine(string.Format("\nRequest time taken - Get Orders With Relations: \n EF: {0}ms \n Dapper: {1}ms \n NHibernate: {2}ms", queryTimeByEF, queryTimeByDappeer, queryTimeByNHibernate));
-                        break;
                 }
 
-                //var summary = BenchmarkRunner.Run(typeof(ORMPerfomanceTest).Assembly);
-                if (!new string[] { "g", "h", "i", "j" }.Contains(option))
-                {
-                    //ShowObjectResult(result);
-                }
-
-                //Console.WriteLine(string.Format("Request time taken: {0}ms", queryTime));
+                ShowObjectResult(result);
+                Console.WriteLine(string.Format("Request time taken: {0}ms", queryTime));
                 stopWatch.Reset();
             }
         }
@@ -223,12 +189,6 @@ namespace DbProject
             services.AddScoped<AppDbContext, AppDbContext>();
             services.AddScoped<UnitOfWork, UnitOfWork>();
             services.AddScoped<IDbProjectService, DbProjectService>();
-            services.AddScoped<DapperRepository>();
-            services.AddScoped<EntityFrameworkPerfomanceTest>();
-            services.AddScoped<DapperPerfomanceTest>();
-            services.AddScoped<NHibernatePerfomanceTest>();
-            services.AddNHibernate(connectionString);
-
 
             using (var serviceScope = services.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
