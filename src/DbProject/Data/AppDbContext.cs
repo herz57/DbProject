@@ -40,6 +40,9 @@ namespace DbProject.Data
                 modelBuilder.ApplyConfiguration(configuration);
             }
 
+            //todo: have you checked something like this?
+            // modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetCallingAssembly());
+
             SetNames(modelBuilder);
             modelBuilder.UseEncryption(_provider);
             base.OnModelCreating(modelBuilder);
@@ -56,7 +59,8 @@ namespace DbProject.Data
             {
                 foreach (var property in entityType.GetProperties())
                 {
-                    if (!property.IsForeignKey())
+                    if (!property.IsForeignKey()) 
+                        //todo: will it work for foreign keys? Instead of writing it for each configuration separately
                     {
                         property.SetColumnName(
                             string.Format("{0}_{1}",

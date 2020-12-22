@@ -9,6 +9,8 @@ namespace DbProject.Data.Domain
     public class User : IEntity<int>
     {
         public int Id { get; set; }
+        
+        //todo: would you use this approach if you need to search users by name?
         [Encrypted]
         public string UserName { get; set; }
         [Encrypted]

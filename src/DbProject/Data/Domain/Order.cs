@@ -23,6 +23,7 @@ namespace DbProject.Data.Domain
         private ICollection<Invoice> _invoices;
         private ICollection<OrderItem> _orderItems;
 
+        //todo: why so many lines 😁
         public virtual ICollection<Invoice> Invoices
         {
             get => _invoices ??= new List<Invoice>();

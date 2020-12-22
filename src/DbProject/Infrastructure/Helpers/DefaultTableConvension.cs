@@ -11,6 +11,7 @@ namespace DbProject.Helper
         private static bool IsVowel(this char c) =>
              char.IsLetter(c) && "aeiouAEIOU".IndexOf(c) < 0;
 
+        //todo: interesting
         public static string GetColumnPrefix(string columnName)
         {
             string res = string.Empty;

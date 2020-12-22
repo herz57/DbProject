@@ -28,15 +28,17 @@ namespace DbProject.Data.UnitOfWork
             _context = context;
         }
 
-        public EfRepository<Category> CategoryRepository
-        {
-            get
-            {
-                if (_categoryRepository == null)
-                    _categoryRepository = new EfRepository<Category>(_context);
-                return _categoryRepository;
-            }
-        }
+        // public EfRepository<Category> CategoryRepository
+        // {
+        //     get
+        //     {
+        //         if (_categoryRepository == null)
+        //             _categoryRepository = new EfRepository<Category>(_context);
+        //         return _categoryRepository;
+        //     }
+        // }
+        //todo: as an option
+        public EfRepository<Category> CategoryRepository => _categoryRepository ??= new EfRepository<Category>(_context);
 
         public EfRepository<Customer> CustomerRepository
         {

@@ -17,6 +17,7 @@ namespace DbProject.Data.EntityConfigurations
             builder.HasIndex(i => i.NameOnCard);
             builder.HasIndex(i => i.LastForDigit);
 
+            //todo: as an option to not dublicate it over each configuration it can be moved to the save changes or generic convention
             builder.Property(i => i.CreateDate).HasDefaultValueSql("getutcdate()").ValueGeneratedOnAdd();
             builder.Property(i => i.UpdateDate).HasDefaultValueSql("getutcdate()").ValueGeneratedOnAddOrUpdate();
 
